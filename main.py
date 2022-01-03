@@ -1,10 +1,10 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
 import uvicorn
 
 import os
 from dotenv import load_dotenv
-import io 
+import io
 
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile
@@ -13,18 +13,14 @@ from fastapi.responses import StreamingResponse
 
 import fitz
 
-from book2page import book2page
 from books import books
-from models import Page, Book
-
+from models import Page, Base, Book
 
 load_dotenv()
 
 engine = create_engine(os.getenv('DB_CONNECTION'), echo=False)
-session = sessionmaker(bind=engine)()
-from models import metadata
-metadata.create_all(engine)
- 
+session = Session(engine)
+Base.metadata.create_all(engine)
 
 app = FastAPI()
 
@@ -52,10 +48,8 @@ def read_item(item_id: int, q: Optional[str] = None):
     return {"item_id": item_id, "q": q}
 
 
-
-
-@app.get("/book/{book_id}/", responses={ 200: {"content": {"image/jpeg": {}}}} )
-@app.get("/book/{book_id}/{page}", responses={ 200: {"content": {"image/jpeg": {}}}} )
+@app.get("/book/{book_id}/", responses={200: {"content": {"image/jpeg": {}}}})
+@app.get("/book/{book_id}/{page}", responses={200: {"content": {"image/jpeg": {}}}})
 def get_page(book_id: int, page: int = 0):
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
     file = io.BytesIO()
@@ -65,22 +59,24 @@ def get_page(book_id: int, page: int = 0):
 
 
 @app.post("/book")
-async def post_book(name: str, author: str, file: UploadFile = File(...)):
+async def post_book(name: str, author: Optional[str], file: UploadFile = File(...)):
     data = await file.read()
+
+    db_book = Book(name=name, author=author)
+    session.add(db_book)
+    session.flush()
     book = fitz.open(stream=data, filetype="pdf")
-    print(dir(file))
     for i, page in enumerate(book):
         raw_data = page.get_pixmap().pil_tobytes('jpeg', quality=80)
-        elem = Page(number=i, book_id=1, data=raw_data)
+        elem = Page(number=i, book_id=db_book.id, data=raw_data)
         session.add(elem)
     session.commit()
-    return {'ok':'ok'}
+    return {'ok': 'ok'}
 
 
 @app.get("/books/")
 def get_books():
     return {'books': [{'id': book_id, 'name': name} for book_id, (file, name) in books.items()]}
-
 
 
 if __name__ == "__main__":

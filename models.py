@@ -1,42 +1,29 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, LargeBinary
-from sqlalchemy.orm import mapper
-from sqlalchemy import MetaData
+from sqlalchemy import Column, Integer, String, ForeignKey, LargeBinary
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-metadata = MetaData()
+Base = declarative_base()
 
-class Book(object):
-    def __init__(self, name, author):
-        self.name = name
-        self.author = author
+
+class Book(Base):
+    __tablename__ = 'Books'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(50), nullable=False)
+    author = Column(String(50))
+    pages = relationship("Page", backref='book')
 
     def __repr__(self):
-        return "<Book('%s','%s')>" % (self.name, self.author)
+        return "<Book('%d', '%s','%s')>" % (self.id, self.name, self.author)
 
 
-Books_table = Table('Books', metadata,
-    Column('id', Integer, primary_key=True),
-    Column('name', String(50)),
-    Column('author', String(50))
-)
+class Page(Base):
+    __tablename__ = 'Pages'
 
-mapper(Book, Books_table) 
-
-
-class Page(object):
-    def __init__(self, number, book_id, data):
-        self.number = number
-        self.book_id = book_id
-        self.data = data
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    number = Column(Integer)
+    book_id = Column(Integer, ForeignKey('Books.id'))
+    data = Column(LargeBinary(2**20))
 
     def __repr__(self):
         return "<Page('%s','%s', 'len(%d)')>" % (self.number, self.book_id, len(self.data))
-
-
-pages_table = Table('Pages', metadata,
-    Column('id', Integer, primary_key=True),
-    Column('number', Integer),
-    Column('data', LargeBinary(length=10_000_000)),
-    Column('book_id', ForeignKey('Books.id'))
-)
-
-mapper(Page, pages_table) 
