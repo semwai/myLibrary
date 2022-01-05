@@ -10,12 +10,14 @@ from typing import Optional
 from fastapi import FastAPI, File, UploadFile, BackgroundTasks, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.openapi.utils import get_openapi
 from fastapi_jwt_auth import AuthJWT
 from fastapi_jwt_auth.exceptions import AuthJWTException
 from pydantic import BaseModel
 import fitz
 
 from models import Page, Base, Book
+from schemas import User
 
 load_dotenv()
 
@@ -41,11 +43,6 @@ app.add_middleware(
 
 
 app = FastAPI()
-
-
-class User(BaseModel):
-    username: str
-    password: str
 
 
 # in production you can use Settings management
@@ -74,22 +71,22 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 # function is used to actually generate the token to use authorization
 # later in endpoint protected
 @app.post('/login')
-def login(user: User, Authorize: AuthJWT = Depends()):
+def login(user: User, authorize: AuthJWT = Depends()):
     if user.username != "test" or user.password != "test":
         raise HTTPException(status_code=401,detail="Bad username or password")
 
     # subject identifier for who this token is for example id or username from database
-    access_token = Authorize.create_access_token(subject=user.username)
+    access_token = authorize.create_access_token(subject=user.username)
     return {"access_token": access_token}
 
 
 # protect endpoint with function jwt_required(), which requires
 # a valid access token in the request headers to access.
-@app.get('/user')
-def user(Authorize: AuthJWT = Depends()):
-    Authorize.jwt_required()
+@app.get('/user', operation_id="authorize")
+def user(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
 
-    current_user = Authorize.get_jwt_subject()
+    current_user = authorize.get_jwt_subject()
     return {"user": current_user}
 
 
@@ -115,7 +112,7 @@ async def upload_book(name: str, file, author: Optional[str] = None):
     session.commit()
 
 
-@app.post("/book")
+@app.post("/book", operation_id="authorize")
 async def post_book(background_tasks: BackgroundTasks,
                     name: str, author: Optional[str] = None,
                     file: UploadFile = File(...),
@@ -124,6 +121,47 @@ async def post_book(background_tasks: BackgroundTasks,
     background_tasks.add_task(upload_book, name=name, author=author, file=file)
     return {'name': name, 'author': author}
 
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+
+    openapi_schema = get_openapi(
+        title="Custom title",
+        version="2.5.0",
+        description="This is a very custom OpenAPI schema",
+        routes=app.routes,
+    )
+
+    # Custom documentation fastapi-jwt-auth
+    headers = {
+        "name": "Authorization",
+        "in": "header",
+        "required": True,
+        "schema": {
+            "title": "Authorization",
+            "type": "string"
+        },
+    }
+
+    # Get routes from index 4 because before that fastapi define router for /openapi.json, /redoc, /docs, etc
+    # Get all router where operation_id is authorized
+    router_authorize = [route for route in app.routes[4:] if route.operation_id == "authorize"]
+
+    for route in router_authorize:
+        method = list(route.methods)[0].lower()
+        try:
+            # If the router has another parameter
+            openapi_schema["paths"][route.path][method]['parameters'].append(headers)
+        except Exception:
+            # If the router doesn't have a parameter
+            openapi_schema["paths"][route.path][method].update({"parameters": [headers]})
+
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host='0.0.0.0', port=8000, reload=True, debug=True, workers=3, use_colors=True)
