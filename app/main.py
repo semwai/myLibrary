@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
-import uvicorn
 
 import os
 from dotenv import load_dotenv
@@ -120,6 +119,11 @@ async def post_book(background_tasks: BackgroundTasks,
     authorize.jwt_required()
     background_tasks.add_task(upload_book, name=name, author=author, file=file)
     return {'name': name, 'author': author}
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 
 def custom_openapi():
