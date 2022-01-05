@@ -7,19 +7,21 @@ from dotenv import load_dotenv
 import io
 
 from typing import Optional
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, BackgroundTasks, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
-
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi_jwt_auth import AuthJWT
+from fastapi_jwt_auth.exceptions import AuthJWTException
+from pydantic import BaseModel
 import fitz
 
-from books import books
 from models import Page, Base, Book
 
 load_dotenv()
 
 engine = create_engine(os.getenv('DB_CONNECTION'), echo=False)
 session = Session(engine)
+# Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)
 
 app = FastAPI()
@@ -38,17 +40,59 @@ app.add_middleware(
     allow_headers=["*"], )
 
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World!"}
+app = FastAPI()
 
 
-@app.get("/items/{item_id}")
-def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+class User(BaseModel):
+    username: str
+    password: str
 
 
-@app.get("/book/{book_id}/", responses={200: {"content": {"image/jpeg": {}}}})
+# in production you can use Settings management
+# from pydantic to get secret key from .env
+class Settings(BaseModel):
+    authjwt_secret_key: str = os.getenv('KEY')
+
+
+# callback to get your configuration
+@AuthJWT.load_config
+def get_config():
+    return Settings()
+
+
+# exception handler for authjwt
+# in production, you can tweak performance using orjson response
+@app.exception_handler(AuthJWTException)
+def authjwt_exception_handler(request: Request, exc: AuthJWTException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message}
+    )
+
+
+# provide a method to create access tokens. The create_access_token()
+# function is used to actually generate the token to use authorization
+# later in endpoint protected
+@app.post('/login')
+def login(user: User, Authorize: AuthJWT = Depends()):
+    if user.username != "test" or user.password != "test":
+        raise HTTPException(status_code=401,detail="Bad username or password")
+
+    # subject identifier for who this token is for example id or username from database
+    access_token = Authorize.create_access_token(subject=user.username)
+    return {"access_token": access_token}
+
+
+# protect endpoint with function jwt_required(), which requires
+# a valid access token in the request headers to access.
+@app.get('/user')
+def user(Authorize: AuthJWT = Depends()):
+    Authorize.jwt_required()
+
+    current_user = Authorize.get_jwt_subject()
+    return {"user": current_user}
+
+
 @app.get("/book/{book_id}/{page}", responses={200: {"content": {"image/jpeg": {}}}})
 def get_page(book_id: int, page: int = 0):
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
@@ -58,25 +102,27 @@ def get_page(book_id: int, page: int = 0):
     return StreamingResponse(file, media_type="image/jpeg")
 
 
-@app.post("/book")
-async def post_book(name: str, author: Optional[str], file: UploadFile = File(...)):
+async def upload_book(name: str, file, author: Optional[str] = None):
     data = await file.read()
-
     db_book = Book(name=name, author=author)
     session.add(db_book)
     session.flush()
     book = fitz.open(stream=data, filetype="pdf")
     for i, page in enumerate(book):
-        raw_data = page.get_pixmap().pil_tobytes('jpeg', quality=80)
+        raw_data = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)).pil_tobytes('jpeg', quality=80)
         elem = Page(number=i, book_id=db_book.id, data=raw_data)
         session.add(elem)
     session.commit()
-    return {'ok': 'ok'}
 
 
-@app.get("/books/")
-def get_books():
-    return {'books': [{'id': book_id, 'name': name} for book_id, (file, name) in books.items()]}
+@app.post("/book")
+async def post_book(background_tasks: BackgroundTasks,
+                    name: str, author: Optional[str] = None,
+                    file: UploadFile = File(...),
+                    authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    background_tasks.add_task(upload_book, name=name, author=author, file=file)
+    return {'name': name, 'author': author}
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ class Book(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String(50), nullable=False)
     author = Column(String(50))
-    pages = relationship("Page", backref='book')
+    pages = relationship("Page", cascade="all,delete", backref='book')
 
     def __repr__(self):
         return "<Book('%d', '%s','%s')>" % (self.id, self.name, self.author)
@@ -22,7 +22,7 @@ class Page(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     number = Column(Integer)
-    book_id = Column(Integer, ForeignKey('Books.id'))
+    book_id = Column(Integer, ForeignKey('Books.id', ondelete='CASCADE'))
     data = Column(LargeBinary(2**20))
 
     def __repr__(self):
