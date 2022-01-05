@@ -15,6 +15,7 @@ pymupdf = "*"
 pillow = "*"
 python-multipart = "*"
 fastapi-jwt-auth = "*"
+alembic = "*"
 
 [dev-packages]
 
