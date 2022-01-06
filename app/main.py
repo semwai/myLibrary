@@ -1,9 +1,13 @@
+import inspect
+
+from fastapi.routing import APIRoute
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
-import os
 from dotenv import load_dotenv
+import os
 import io
+import re
 
 from typing import Optional
 from fastapi import FastAPI, File, UploadFile, BackgroundTasks, HTTPException, Depends, Request
@@ -81,7 +85,7 @@ def login(user: User, authorize: AuthJWT = Depends()):
 
 # protect endpoint with function jwt_required(), which requires
 # a valid access token in the request headers to access.
-@app.get('/user', operation_id="authorize")
+@app.get('/user')
 def user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
 
@@ -113,7 +117,7 @@ async def upload_book(name: str, file, author: Optional[str] = None):
     session.commit()
 
 
-@app.post("/book", operation_id="authorize")
+@app.post("/book")
 async def post_book(background_tasks: BackgroundTasks,
                     name: str, author: Optional[str] = None,
                     file: UploadFile = File(...),
@@ -139,6 +143,15 @@ def custom_openapi():
         routes=app.routes,
     )
 
+    openapi_schema["components"]["securitySchemes"] = {
+        "Bearer Auth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Enter: **'Bearer &lt;JWT&gt;'**, where JWT is the access token"
+        }
+    }
+
     # Custom documentation fastapi-jwt-auth
     headers = {
         "name": "Authorization",
@@ -150,18 +163,25 @@ def custom_openapi():
         },
     }
 
-    # Get routes from index 4 because before that fastapi define router for /openapi.json, /redoc, /docs, etc
-    # Get all router where operation_id is authorized
-    router_authorize = [route for route in app.routes[4:] if route.operation_id == "authorize"]
+    api_router = [route for route in app.routes if isinstance(route, APIRoute)]
 
-    for route in router_authorize:
-        method = list(route.methods)[0].lower()
-        try:
-            # If the router has another parameter
-            openapi_schema["paths"][route.path][method]['parameters'].append(headers)
-        except Exception:
-            # If the router doesn't have a parameter
-            openapi_schema["paths"][route.path][method].update({"parameters": [headers]})
+    for route in api_router:
+        path = getattr(route, "path")
+        endpoint = getattr(route, "endpoint")
+        methods = [method.lower() for method in getattr(route, "methods")]
+
+        for method in methods:
+            # access_token
+            if (
+                    re.search("jwt_required", inspect.getsource(endpoint)) or
+                    re.search("fresh_jwt_required", inspect.getsource(endpoint)) or
+                    re.search("jwt_optional", inspect.getsource(endpoint))
+            ):
+                openapi_schema["paths"][path][method]["security"] = [
+                    {
+                        "Bearer Auth": []
+                    }
+                ]
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
