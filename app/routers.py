@@ -12,7 +12,7 @@ import fitz
 from dotenv import load_dotenv
 
 from .models import Page, Book
-from .schemas import User
+from .schemas import User, UserRegister
 from .session import session
 
 router = APIRouter()
@@ -45,6 +45,11 @@ def login(user: User, authorize: AuthJWT = Depends()):
     return {"access_token": access_token}
 
 
+@router.post('/register', tags=['User'], response_model=User)
+def register(user: UserRegister):
+    return user
+
+
 # protect endpoint with function jwt_required(), which requires
 # a valid access token in the request headers to access.
 @router.get('/user', tags=['User'])
@@ -55,7 +60,7 @@ def user(authorize: AuthJWT = Depends()):
     return {"user": current_user}
 
 
-@router.get("/book/{book_id}/{page}", tags=['Books'], responses={200: {"content": {"image/jpeg": {}}}})
+@router.get("/book/{book_id}/{page}", tags=['Books'], response_class=StreamingResponse)
 def get_page(book_id: int, page: int = 0):
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
     if res is None:

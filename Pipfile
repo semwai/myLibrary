@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 sqlalchemy = "*"
-pydantic = "*"
+pydantic = {extras = ["email"], version = "*"}
 pymysql = "*"
 fastapi = "*"
 uvicorn = "*"
