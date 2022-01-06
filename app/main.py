@@ -72,7 +72,7 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
 @app.post('/login')
 def login(user: User, authorize: AuthJWT = Depends()):
     if user.username != "test" or user.password != "test":
-        raise HTTPException(status_code=401,detail="Bad username or password")
+        raise HTTPException(status_code=401, detail="Bad username or password")
 
     # subject identifier for who this token is for example id or username from database
     access_token = authorize.create_access_token(subject=user.username)
@@ -92,6 +92,8 @@ def user(authorize: AuthJWT = Depends()):
 @app.get("/book/{book_id}/{page}", responses={200: {"content": {"image/jpeg": {}}}})
 def get_page(book_id: int, page: int = 0):
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
+    if res is None:
+        return HTTPException(status_code=404, detail="Page not found")
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
