@@ -35,7 +35,7 @@ def get_config():
 # provide a method to create access tokens. The create_access_token()
 # function is used to actually generate the token to use authorization
 # later in endpoint protected
-@router.post('/login')
+@router.post('/login', tags=['User'])
 def login(user: User, authorize: AuthJWT = Depends()):
     if user.username != "test" or user.password != "test":
         raise HTTPException(status_code=401, detail="Bad username or password")
@@ -47,7 +47,7 @@ def login(user: User, authorize: AuthJWT = Depends()):
 
 # protect endpoint with function jwt_required(), which requires
 # a valid access token in the request headers to access.
-@router.get('/user')
+@router.get('/user', tags=['User'])
 def user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
 
@@ -55,7 +55,7 @@ def user(authorize: AuthJWT = Depends()):
     return {"user": current_user}
 
 
-@router.get("/book/{book_id}/{page}", responses={200: {"content": {"image/jpeg": {}}}})
+@router.get("/book/{book_id}/{page}", tags=['Books'], responses={200: {"content": {"image/jpeg": {}}}})
 def get_page(book_id: int, page: int = 0):
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
     if res is None:
@@ -79,7 +79,7 @@ async def upload_book(name: str, file, author: Optional[str] = None):
     session.commit()
 
 
-@router.post("/book")
+@router.post("/book", tags=['Books'])
 async def post_book(background_tasks: BackgroundTasks,
                     name: str, author: Optional[str] = None,
                     file: UploadFile = File(...),
