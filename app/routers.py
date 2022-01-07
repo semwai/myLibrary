@@ -10,11 +10,12 @@ from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.dialects.mysql import insert
 import fitz
 
 from dotenv import load_dotenv
 
-from .models import Page, Book, User as UserModel
+from .models import Page, Book, User as UserModel, users_progress
 from .schemas import User, UserRegister, HTTPError, UserMe
 from .session import session
 
@@ -98,10 +99,18 @@ def user(authorize: AuthJWT = Depends()):
 
 
 @router.get("/book/{book_id}/{page}", tags=['Books'], response_class=StreamingResponse)
-def get_page(book_id: int, page: int = 0):
+def get_page(book_id: int, page: int = 0, authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
     res = session.query(Page).filter_by(book_id=book_id, number=page).first()
     if res is None:
         return HTTPException(status_code=404, detail="Page not found")
+    current_user = authorize.get_jwt_subject()
+    user = session.query(UserModel).filter_by(name=current_user).one()
+
+    ins = insert(users_progress).values(user_id=user.id, book_id=book_id, page=page).on_duplicate_key_update(page=page)
+    session.execute(ins)
+    session.commit()
+    print(user.books)
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)

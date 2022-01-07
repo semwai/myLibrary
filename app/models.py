@@ -4,11 +4,11 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-association_table = Table('UsersProgress', Base.metadata,
-    Column('user_id', ForeignKey('Users.id'), primary_key=True),
-    Column('book_id', ForeignKey('Books.id'), primary_key=True),
-    Column('page', Integer(), nullable=False)
-)
+users_progress = Table('UsersProgress', Base.metadata,
+                       Column('user_id', ForeignKey('Users.id'), primary_key=True),
+                       Column('book_id', ForeignKey('Books.id'), primary_key=True),
+                       Column('page', Integer(), nullable=False)
+                       )
 
 
 class User(Base):
@@ -17,7 +17,7 @@ class User(Base):
     name = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False)
     password = Column(String(256), nullable=False)
-    books = relationship("Book", cascade="all,delete", backref='user', secondary=association_table)
+    books = relationship("Book", cascade="all,delete", backref='user', secondary=users_progress)
 
     def __repr__(self):
         return "<User('%d', '%s','%s')>" % (self.id, self.name, self.email)
