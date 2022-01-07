@@ -59,6 +59,12 @@ def login(user: User, authorize: AuthJWT = Depends()):
     return {"access_token": access_token}
 
 
+@router.post('/logout', tags=['User'])
+def login(authorize: AuthJWT = Depends()):
+    authorize.jwt_required()
+    return "ok"
+
+
 @router.post('/register', tags=['User'], responses={
         200: {"model": User},
         409: {
