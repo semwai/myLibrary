@@ -4,12 +4,6 @@ from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
 
-users_progress = Table('UsersProgress', Base.metadata,
-                       Column('user_id', ForeignKey('Users.id'), primary_key=True),
-                       Column('book_id', ForeignKey('Books.id'), primary_key=True),
-                       Column('page', Integer(), nullable=False)
-                       )
-
 
 class User(Base):
     __tablename__ = 'Users'
@@ -17,7 +11,8 @@ class User(Base):
     name = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False)
     password = Column(String(256), nullable=False)
-    books = relationship("Book", cascade="all,delete", backref='user', secondary=users_progress)
+    books = relationship("Book", cascade="all,delete", backref='user')
+    progress = relationship("UserProgress", cascade="all,delete")
 
     def __repr__(self):
         return "<User('%d', '%s','%s')>" % (self.id, self.name, self.email)
@@ -34,6 +29,17 @@ class Book(Base):
 
     def __repr__(self):
         return "<Book('%d', '%s','%s')>" % (self.id, self.name, self.author)
+
+
+class UserProgress(Base):
+    __tablename__ = 'UsersProgress'
+
+    user_id = Column(ForeignKey('Users.id'), primary_key=True)
+    book_id = Column(ForeignKey('Books.id'), primary_key=True)
+    page = Column(Integer(), nullable=False)
+
+    def __repr__(self):
+        return "<UserProgress(user_id=%d, book_id=%d, page=%d)>" % (self.user_id, self.book_id, self.page)
 
 
 class Page(Base):
