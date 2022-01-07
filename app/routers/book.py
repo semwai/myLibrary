@@ -13,12 +13,11 @@ from ..session import session
 book_router = APIRouter()
 
 
-@book_router.get("/book/{book_id}/{page}", tags=['Book'], response_class=StreamingResponse)
-def get_page(book_id: int, page: int = 0, authorize: AuthJWT = Depends()):
+@book_router.get("/page/{book_id}", tags=['Book'],
+                 description="get page and save current `page: int` to database.\
+                             if `page` is `None` - get last opened or first page", response_class=StreamingResponse)
+def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depends()):
     authorize.jwt_required()
-    res = session.query(Page).filter_by(book_id=book_id, number=page).first()
-    if res is None:
-        return HTTPException(status_code=404, detail="Page not found")
     current_user = authorize.get_jwt_subject()
     db_user = session.query(UserModel).filter_by(name=current_user).one()
     progress = session.query(UserProgress).filter_by(user_id=db_user.id, book_id=book_id).first()
@@ -26,9 +25,13 @@ def get_page(book_id: int, page: int = 0, authorize: AuthJWT = Depends()):
     if progress is None:
         progress = UserProgress(user_id=db_user.id, book_id=book_id, page=page)
     else:
-        progress.page = page
+        if page is not None:
+            progress.page = page
     session.add(progress)
     session.commit()
+    res = session.query(Page).filter_by(book_id=book_id, number=progress.page).first()
+    if res is None:
+        return HTTPException(status_code=404, detail="Page not found")
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
