@@ -1,3 +1,4 @@
+import sqlalchemy.exc
 from fastapi import APIRouter
 import io
 import os
@@ -8,12 +9,13 @@ from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
 from passlib.context import CryptContext
+from sqlalchemy.exc import IntegrityError
 import fitz
 
 from dotenv import load_dotenv
 
 from .models import Page, Book, User as UserModel
-from .schemas import User, UserRegister
+from .schemas import User, UserRegister, HTTPError
 from .session import session
 
 router = APIRouter()
@@ -56,13 +58,22 @@ def login(user: User, authorize: AuthJWT = Depends()):
     return {"access_token": access_token}
 
 
-@router.post('/register', tags=['User'], response_model=User)
+@router.post('/register', tags=['User'], responses={
+        200: {"model": User},
+        409: {
+            "model": HTTPError,
+            "description": "User already exist",
+        },
+    },)
 def register(user: UserRegister):
     hashed_password = pwd_context.hash(user.password)
-    # new_user = User(username=user.username, password=hashed_password)
     new_user = UserModel(name=user.username, email=user.mail, password=hashed_password)
     session.add(new_user)
-    session.commit()
+    try:
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+        raise HTTPException(status_code=409, detail="User already exist")
     return user
 
 

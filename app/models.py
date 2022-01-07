@@ -14,7 +14,7 @@ association_table = Table('UsersProgress', Base.metadata,
 class User(Base):
     __tablename__ = 'Users'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(50), nullable=False)
+    name = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False)
     password = Column(String(256), nullable=False)
     books = relationship("Book", cascade="all,delete", backref='user', secondary=association_table)
