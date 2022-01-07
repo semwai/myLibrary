@@ -3,10 +3,10 @@ from fastapi.routing import APIRoute
 import re
 import inspect
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_jwt_auth.exceptions import AuthJWTException
-from starlette.responses import JSONResponse
 
 from .routers import router
 

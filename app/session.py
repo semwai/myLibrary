@@ -9,5 +9,4 @@ load_dotenv()
 
 engine = create_engine(os.getenv('DB_CONNECTION'), echo=False)
 session = Session(engine)
-# Base.metadata.drop_all(engine)
 Base.metadata.create_all(engine)

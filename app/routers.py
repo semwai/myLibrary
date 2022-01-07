@@ -1,9 +1,8 @@
-import sqlalchemy.exc
 from fastapi import APIRouter
 import io
 import os
 
-from typing import Optional, Dict
+from typing import Optional
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
@@ -45,16 +44,16 @@ def verify_password(plain_password, hashed_password):
 # function is used to actually generate the token to use authorization
 # later in endpoint protected
 @router.post('/login', tags=['User'])
-def login(user: User, authorize: AuthJWT = Depends()):
-    query = session.query(UserModel).filter_by(name=user.username)
+def login(user_in: User, authorize: AuthJWT = Depends()):
+    query = session.query(UserModel).filter_by(name=user_in.username)
     if query.count() == 0:
         raise HTTPException(status_code=401, detail="Bad username or password")
     db_user = query.one()
-    if not verify_password(user.password, db_user.password):
+    if not verify_password(user_in.password, db_user.password):
         raise HTTPException(status_code=401, detail="Bad username or password")
 
     # subject identifier for who this token is for example id or username from database
-    access_token = authorize.create_access_token(subject=user.username)
+    access_token = authorize.create_access_token(subject=user_in.username)
     return {"access_token": access_token}
 
 
@@ -71,16 +70,16 @@ def login(authorize: AuthJWT = Depends()):
             "description": "User already exist",
         },
     },)
-def register(user: UserRegister):
-    hashed_password = pwd_context.hash(user.password)
-    new_user = UserModel(name=user.username, email=user.mail, password=hashed_password)
+def register(user_in: UserRegister):
+    hashed_password = pwd_context.hash(user_in.password)
+    new_user = UserModel(name=user_in.username, email=user_in.mail, password=hashed_password)
     session.add(new_user)
     try:
         session.commit()
     except IntegrityError:
         session.rollback()
         raise HTTPException(status_code=409, detail="User already exist")
-    return user
+    return user_in
 
 
 # protect endpoint with function jwt_required(), which requires
@@ -110,11 +109,11 @@ def get_page(book_id: int, page: int = 0, authorize: AuthJWT = Depends()):
     if res is None:
         return HTTPException(status_code=404, detail="Page not found")
     current_user = authorize.get_jwt_subject()
-    user = session.query(UserModel).filter_by(name=current_user).one()
-    progress = session.query(UserProgress).filter_by(user_id=user.id, book_id=book_id).first()
+    db_user = session.query(UserModel).filter_by(name=current_user).one()
+    progress = session.query(UserProgress).filter_by(user_id=db_user.id, book_id=book_id).first()
     # Update user page offset or create new for first query
     if progress is None:
-        progress = UserProgress(user_id=user.id, book_id=book_id, page=page)
+        progress = UserProgress(user_id=db_user.id, book_id=book_id, page=page)
     else:
         progress.page = page
     session.add(progress)
