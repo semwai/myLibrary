@@ -7,17 +7,20 @@ from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
 from pydantic import BaseModel
+from passlib.context import CryptContext
 import fitz
 
 from dotenv import load_dotenv
 
-from .models import Page, Book
+from .models import Page, Book, User as UserModel
 from .schemas import User, UserRegister
 from .session import session
 
 router = APIRouter()
 
 load_dotenv()
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 # in production you can use Settings management
@@ -32,12 +35,20 @@ def get_config():
     return Settings()
 
 
+def verify_password(plain_password, hashed_password):
+    return pwd_context.verify(plain_password, hashed_password)
+
+
 # provide a method to create access tokens. The create_access_token()
 # function is used to actually generate the token to use authorization
 # later in endpoint protected
 @router.post('/login', tags=['User'])
 def login(user: User, authorize: AuthJWT = Depends()):
-    if user.username != "test" or user.password != "test":
+    query = session.query(UserModel).filter_by(name=user.username)
+    if query.count() == 0:
+        raise HTTPException(status_code=401, detail="Bad username or password")
+    db_user = query.one()
+    if not verify_password(user.password, db_user.password):
         raise HTTPException(status_code=401, detail="Bad username or password")
 
     # subject identifier for who this token is for example id or username from database
@@ -47,6 +58,11 @@ def login(user: User, authorize: AuthJWT = Depends()):
 
 @router.post('/register', tags=['User'], response_model=User)
 def register(user: UserRegister):
+    hashed_password = pwd_context.hash(user.password)
+    # new_user = User(username=user.username, password=hashed_password)
+    new_user = UserModel(name=user.username, email=user.mail, password=hashed_password)
+    session.add(new_user)
+    session.commit()
     return user
 
 

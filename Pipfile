@@ -16,6 +16,7 @@ pillow = "*"
 python-multipart = "*"
 fastapi-jwt-auth = "*"
 alembic = "*"
+passlib = {extras = ["bcrypt"], version = "*"}
 
 [dev-packages]
 pytest = "*"
