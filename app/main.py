@@ -8,11 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_jwt_auth.exceptions import AuthJWTException
 
-from .routers import router
-
+from .routers.book import book_router
+from .routers.user import user_router
 
 app = FastAPI()
-app.include_router(router)
+app.include_router(user_router)
+app.include_router(book_router)
 
 origins = [
     "http://localhost:3000",
@@ -36,6 +37,11 @@ def authjwt_exception_handler(request: Request, exc: AuthJWTException):
         status_code=exc.status_code,
         content={"detail": exc.message}
     )
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 
 def custom_openapi():
