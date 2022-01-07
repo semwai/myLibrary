@@ -6,6 +6,10 @@ class User(BaseModel):
     password: str
 
 
+class UserMe(BaseModel):
+    username: str
+
+
 class UserRegister(BaseModel):
     username: str
     password: str

@@ -3,7 +3,7 @@ from fastapi import APIRouter
 import io
 import os
 
-from typing import Optional
+from typing import Optional, Dict
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
@@ -15,7 +15,7 @@ import fitz
 from dotenv import load_dotenv
 
 from .models import Page, Book, User as UserModel
-from .schemas import User, UserRegister, HTTPError
+from .schemas import User, UserRegister, HTTPError, UserMe
 from .session import session
 
 router = APIRouter()
@@ -79,7 +79,17 @@ def register(user: UserRegister):
 
 # protect endpoint with function jwt_required(), which requires
 # a valid access token in the request headers to access.
-@router.get('/user', tags=['User'])
+@router.get('/user', tags=['User'], responses={
+        200: {"model": UserMe},
+        401: {
+            "model": HTTPError,
+            "description": "Missing Authorization Header",
+        },
+        422: {
+            "model": HTTPError,
+            "description": "Signature fail",
+        },
+    },)
 def user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
 
