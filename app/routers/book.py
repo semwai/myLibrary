@@ -14,7 +14,7 @@ book_router = APIRouter()
 
 
 @book_router.get("/page/{book_id}", tags=['Book'],
-                 description="get page and save current `page: int` to database.\
+                 description="get page as jpg file and save current `page: int` to database.\
                              if `page` is `None` - get last opened or first page", response_class=StreamingResponse)
 def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depends()):
     authorize.jwt_required()
@@ -24,9 +24,8 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
     # Update user page offset or create new for first query
     if progress is None:
         progress = UserProgress(user_id=db_user.id, book_id=book_id, page=page)
-    else:
-        if page is not None:
-            progress.page = page
+    elif page is not None:
+        progress.page = page
     session.add(progress)
     session.commit()
     res = session.query(Page).filter_by(book_id=book_id, number=progress.page).first()
