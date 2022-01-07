@@ -26,6 +26,7 @@ class Book(Base):
     author = Column(String(50))
     pages = relationship("Page", cascade="all,delete", backref='book')
     user_id = Column(Integer, ForeignKey('Users.id', ondelete='CASCADE'))
+    raw = Column(LargeBinary(2 ** 30))
 
     def __repr__(self):
         return "<Book('%d', '%s','%s')>" % (self.id, self.name, self.author)

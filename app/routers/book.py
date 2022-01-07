@@ -39,7 +39,7 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
 
 async def upload_book(name: str, file, author: Optional[str] = None):
     data = await file.read()
-    db_book = Book(name=name, author=author)
+    db_book = Book(name=name, author=author, raw=data)
     session.add(db_book)
     session.flush()
     book = fitz.open(stream=data, filetype="pdf")
@@ -58,3 +58,8 @@ async def post_book(background_tasks: BackgroundTasks,
     authorize.jwt_required()
     background_tasks.add_task(upload_book, name=name, author=author, file=file)
     return {'name': name, 'author': author}
+
+
+@book_router.get("/book/{id}", tags=['Book'])
+async def get_book(id: int, authorize: AuthJWT = Depends()):
+    raise HTTPException(501)
