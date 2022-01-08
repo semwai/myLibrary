@@ -17,6 +17,7 @@ python-multipart = "*"
 fastapi-jwt-auth = "*"
 alembic = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
+redis = "*"
 
 [dev-packages]
 pytest = "*"

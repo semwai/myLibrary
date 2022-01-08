@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 from fastapi import APIRouter
@@ -7,6 +8,7 @@ from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
+from redis import Redis
 
 from ..models import User as UserModel
 from ..schemas import User, UserRegister, HTTPError, UserMe
@@ -23,12 +25,28 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 # from pydantic to get secret key from .env
 class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv('KEY')
+    authjwt_denylist_enabled: bool = True
+    authjwt_denylist_token_checks: set = {"access", "refresh"}
+    access_expires: int = timedelta(minutes=15)
+    refresh_expires: int = timedelta(days=30)
+
+
+settings = Settings()
+redis_conn = Redis(host=os.getenv('REDIS_HOST'), port=int(os.getenv('REDIS_PORT')), db=0, decode_responses=True)
 
 
 # callback to get your configuration
 @AuthJWT.load_config
 def get_config():
     return Settings()
+
+
+@AuthJWT.token_in_denylist_loader
+def check_if_token_in_denylist(decrypted_token):
+    jti = decrypted_token['jti']
+    entry = redis_conn.get(jti)
+    print(jti, entry, 123)
+    return entry and entry == 'true'
 
 
 def verify_password(plain_password, hashed_password):
@@ -55,7 +73,9 @@ def login(user_in: User, authorize: AuthJWT = Depends()):
 @user_router.post('/logout', tags=['User'])
 def login(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
-    return "ok"
+    jti = authorize.get_raw_jwt()['jti']
+    redis_conn.setex(jti, settings.access_expires, 'true')
+    return {"detail": "Access token has been revoke"}
 
 
 @user_router.post('/register', tags=['User'], responses={
