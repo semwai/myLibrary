@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from ..app.main import app
+from backend.app.main import app
 
 client = TestClient(app)
 
@@ -12,8 +12,8 @@ def test_read_main():
 
 
 def test_login():
-    response_fail = client.post('/login', json={'username': 'test', 'password': 'tes1t'})
-    response_success = client.post('/login', json={'username': 'test', 'password': 'test'})
+    response_fail = client.post('/login', json={'username': 'string', 'password': 'not a string'})
+    response_success = client.post('/login', json={'username': 'string', 'password': 'string'})
     assert response_fail.json().get('access_token') is None
     assert response_success.json().get('access_token') is not None
 
