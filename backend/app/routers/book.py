@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
+from sqlalchemy.orm import load_only
 
 from ..models import Page, Book, User as UserModel, UserProgress
 from ..session import session
@@ -57,9 +58,23 @@ async def post_book(background_tasks: BackgroundTasks,
                     authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     background_tasks.add_task(upload_book, name=name, author=author, file=file)
-    return {'name': name, 'author': author}
+    raise HTTPException(status_code=201, detail="book")
+
+
+@book_router.get("/books", tags=['Book'], description="get id of books")
+async def post_book(authorize: AuthJWT = Depends()):
+    authorize.jwt_optional()
+    fields = ['id', 'name', 'author']
+    books = session.query(Book).options(load_only(*fields)).all()
+    return [book.__dict__ for book in books]
 
 
 @book_router.get("/book/{id}", tags=['Book'])
 async def get_book(id: int, authorize: AuthJWT = Depends()):
-    raise HTTPException(501)
+    res = session.query(Book).filter_by(id=id).first()
+    if res is None:
+        return HTTPException(status_code=404, detail="Page not found")
+    file = io.BytesIO()
+    file.write(res.raw)
+    file.seek(0)
+    return StreamingResponse(file, media_type="application/pdf")
