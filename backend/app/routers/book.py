@@ -2,7 +2,7 @@ import io
 from typing import Optional
 
 import fitz
-from fastapi import APIRouter
+from fastapi import APIRouter, status
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
@@ -51,14 +51,14 @@ async def upload_book(name: str, file, author: Optional[str] = None):
     session.commit()
 
 
-@book_router.post("/book", tags=['Book'])
+@book_router.post("/book", tags=['Book'], status_code=status.HTTP_201_CREATED)
 async def post_book(background_tasks: BackgroundTasks,
                     name: str, author: Optional[str] = None,
                     file: UploadFile = File(...),
                     authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     background_tasks.add_task(upload_book, name=name, author=author, file=file)
-    raise HTTPException(status_code=201, detail="book")
+    return {'name': name, 'author': author}
 
 
 @book_router.get("/books", tags=['Book'], description="get id of books")
