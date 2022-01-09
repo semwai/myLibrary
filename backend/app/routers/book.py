@@ -66,7 +66,7 @@ async def post_book(authorize: AuthJWT = Depends()):
     authorize.jwt_optional()
     fields = ['id', 'name', 'author']
     books = session.query(Book).options(load_only(*fields)).all()
-    return [book.__dict__ for book in books]
+    return {'books': [book.__dict__ for book in books]}
 
 
 @book_router.get("/book/{id}", tags=['Book'])
