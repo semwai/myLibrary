@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import useToken from '../useToken';
 
 function getPage(token, setter, book) {
-  fetch(`http://localhost:8000/page/${book}`, {
+  fetch(`${process.env.REACT_APP_BACK_ADDR}/page/${book}`, {
     mode: 'cors',
     headers: { 'Authorization': `Bearer ${token}` }
   })
