@@ -24,7 +24,10 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
     progress = session.query(UserProgress).filter_by(user_id=db_user.id, book_id=book_id).first()
     # Update user page offset or create new for first query
     if progress is None:
-        progress = UserProgress(user_id=db_user.id, book_id=book_id, page=page)
+        if page is not None:
+            progress = UserProgress(user_id=db_user.id, book_id=book_id, page=page)
+        else:
+            progress = UserProgress(user_id=db_user.id, book_id=book_id, page=0)
     elif page is not None:
         progress.page = page
     session.add(progress)
