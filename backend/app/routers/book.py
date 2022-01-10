@@ -6,10 +6,10 @@ from fastapi import APIRouter, status
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
-from sqlalchemy.orm import load_only
+from sqlalchemy.orm import load_only, Session
 
 from ..models import Page, Book, User as UserModel, UserProgress
-from ..session import session
+from ..session import get_db
 
 book_router = APIRouter()
 
@@ -17,7 +17,7 @@ book_router = APIRouter()
 @book_router.get("/page/{book_id}", tags=['Book'],
                  description="get page as jpg file and save current `page: int` to database.\
                              if `page` is `None` - get last opened or first page", response_class=StreamingResponse)
-def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depends()):
+def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     authorize.jwt_required()
     current_user = authorize.get_jwt_subject()
     db_user = session.query(UserModel).filter_by(name=current_user).one()
@@ -41,7 +41,7 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
     return StreamingResponse(file, media_type="image/jpeg")
 
 
-async def upload_book(name: str, file, author: Optional[str] = None):
+async def upload_book(name: str, file, author: Optional[str] = None, session: Session = Depends(get_db)):
     data = await file.read()
     db_book = Book(name=name, author=author, raw=data)
     session.add(db_book)
@@ -65,7 +65,7 @@ async def post_book(background_tasks: BackgroundTasks,
 
 
 @book_router.get("/books", tags=['Book'], description="get id of books")
-async def post_book(authorize: AuthJWT = Depends()):
+async def post_book(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     authorize.jwt_optional()
     fields = ['id', 'name', 'author']
     books = session.query(Book).options(load_only(*fields)).all()
@@ -73,7 +73,7 @@ async def post_book(authorize: AuthJWT = Depends()):
 
 
 @book_router.get("/book/{id}", tags=['Book'])
-async def get_book(id: int, authorize: AuthJWT = Depends()):
+async def get_book(id: int, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     res = session.query(Book).filter_by(id=id).first()
     if res is None:
         return HTTPException(status_code=404, detail="Page not found")

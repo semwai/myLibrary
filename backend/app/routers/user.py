@@ -9,10 +9,11 @@ from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
 from redis import Redis
+from sqlalchemy.orm import Session
 
 from ..models import User as UserModel
 from ..schemas import User, UserRegister, HTTPError, UserMe
-from ..session import session
+from ..session import get_db
 
 user_router = APIRouter()
 
@@ -57,7 +58,7 @@ def verify_password(plain_password, hashed_password):
 # function is used to actually generate the token to use authorization
 # later in endpoint protected
 @user_router.post('/login', tags=['User'])
-def login(user_in: User, authorize: AuthJWT = Depends()):
+def login(user_in: User, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     query = session.query(UserModel).filter_by(name=user_in.username)
     if query.count() == 0:
         raise HTTPException(status_code=401, detail="Bad username or password")
@@ -85,7 +86,7 @@ def login(authorize: AuthJWT = Depends()):
             "description": "User already exist",
         },
     }, )
-def register(user_in: UserRegister):
+def register(user_in: UserRegister, session: Session = Depends(get_db)):
     hashed_password = pwd_context.hash(user_in.password)
     new_user = UserModel(name=user_in.username, email=user_in.mail, password=hashed_password)
     session.add(new_user)
