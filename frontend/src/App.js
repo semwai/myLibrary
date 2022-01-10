@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Book from './components/pages/book';
+import Books from './components/pages/books';
 import Index from './components/pages/Index';
 import Login from './components/login';
 import useToken from './components/useToken';
@@ -21,6 +22,8 @@ function App() {
           <Route path="/" element={<Index />}>
           </Route>
           <Route path="/book" element={<Book />}>
+          </Route>
+          <Route path="/books" element={<Books />}>
           </Route>
         </Routes>
       </BrowserRouter>
