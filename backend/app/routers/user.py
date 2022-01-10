@@ -28,8 +28,8 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv('KEY')
     authjwt_denylist_enabled: bool = True
     authjwt_denylist_token_checks: set = {"access", "refresh"}
-    access_expires: int = timedelta(minutes=150)
-    refresh_expires: int = timedelta(days=30)
+    authjwt_access_token_expires: int = timedelta(minutes=60)
+    authjwt_refresh_token_expires: int = timedelta(days=30)
 
 
 settings = Settings()
@@ -68,7 +68,23 @@ def login(user_in: User, authorize: AuthJWT = Depends(), session: Session = Depe
 
     # subject identifier for who this token is for example id or username from database
     access_token = authorize.create_access_token(subject=user_in.username)
-    return {"access_token": access_token}
+    refresh_token = authorize.create_refresh_token(subject=user_in.username)
+    return {'access_token': access_token, 'refresh_token': refresh_token}
+
+
+@user_router.post('/refresh', tags=['User'])
+def refresh(authorize: AuthJWT = Depends()):
+    """
+    The jwt_refresh_token_required() function insures a valid refresh
+    token is present in the request before running any code below that function.
+    we can use the get_jwt_subject() function to get the subject of the refresh
+    token, and use the create_access_token() function again to make a new access token
+    """
+    authorize.jwt_refresh_token_required()
+
+    current_user = authorize.get_jwt_subject()
+    new_access_token = authorize.create_access_token(subject=current_user)
+    return {"access_token": new_access_token}
 
 
 @user_router.post('/logout', tags=['User'])

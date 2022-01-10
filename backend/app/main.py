@@ -63,7 +63,13 @@ def custom_openapi():
             "in": "header",
             "name": "Authorization",
             "description": "Enter: **'Bearer &lt;JWT&gt;'**, where JWT is the access token"
-        }
+        },
+        "Bearer refresh": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authorization",
+            "description": "Enter: **'Bearer &lt;JWT&gt;'**, where JWT is the refresh token"
+        },
     }
 
     api_router = [route for route in app.routes if isinstance(route, APIRoute)]
@@ -76,15 +82,13 @@ def custom_openapi():
         for method in methods:
             # access_token
             if (
-                    re.search("jwt_required", inspect.getsource(endpoint)) or
-                    re.search("fresh_jwt_required", inspect.getsource(endpoint)) or
-                    re.search("jwt_optional", inspect.getsource(endpoint))
+                re.search("jwt_required", inspect.getsource(endpoint)) or
+                re.search("fresh_jwt_required", inspect.getsource(endpoint)) or
+                re.search("jwt_optional", inspect.getsource(endpoint))
             ):
-                openapi_schema["paths"][path][method]["security"] = [
-                    {
-                        "Bearer Auth": []
-                    }
-                ]
+                openapi_schema["paths"][path][method]["security"] = [{"Bearer Auth": []}]
+            if re.search("jwt_refresh_token_required", inspect.getsource(endpoint)):
+                openapi_schema["paths"][path][method]["security"] = [{"Bearer refresh": []}]
 
     app.openapi_schema = openapi_schema
     return app.openapi_schema
