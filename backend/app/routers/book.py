@@ -6,6 +6,7 @@ from fastapi import APIRouter, status
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import load_only, Session
 
 from ..models import Page, Book, User as UserModel, UserProgress
@@ -30,11 +31,14 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
             progress = UserProgress(user_id=db_user.id, book_id=book_id, page=0)
     elif page is not None:
         progress.page = page
-    session.add(progress)
-    session.commit()
+    try:
+        session.add(progress)
+        session.commit()
+    except IntegrityError:
+        raise HTTPException(status_code=404, detail="Book not found")
     res = session.query(Page).filter_by(book_id=book_id, number=progress.page).first()
     if res is None:
-        return HTTPException(status_code=404, detail="Page not found")
+        raise HTTPException(status_code=404, detail="Page not found")
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
