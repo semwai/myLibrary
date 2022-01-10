@@ -16,6 +16,8 @@ app.include_router(user_router)
 app.include_router(book_router)
 
 origins = [
+    "http://192.168.0.3:3000",
+    "http://192.168.0.3:8000",
     "http://localhost:3000",
     "http://localhost:8000",
     "http://project.test",
