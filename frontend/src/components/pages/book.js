@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import useToken from '../useToken';
 
-function getPage(token, setter) {
-  fetch('http://localhost:8000/page/3', {
+function getPage(token, setter, book) {
+  fetch(`http://localhost:8000/page/${book}`, {
     mode: 'cors',
     headers: { 'Authorization': `Bearer ${token}` }
   })
@@ -19,9 +20,10 @@ export default function Book() {
 
   const { token, setToken } = useToken();
   const [page, setPage] = useState('');
+  const book_id = useParams().id
 
   useEffect(() => {
-    getPage(token, setPage)
+    getPage(token, setPage, book_id)
     
   }, []);
 

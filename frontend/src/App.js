@@ -33,7 +33,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Index />}>
             </Route>
-            <Route path="/book" element={<Book />}>
+            <Route path="/book/:id" element={<Book />}>
             </Route>
             <Route path="/books" element={<Books />}>
             </Route>
