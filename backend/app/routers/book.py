@@ -45,7 +45,7 @@ def get_page(book_id: int,
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
-    headers = {'page': str(progress.page)}
+    headers = {'page': str(progress.page), 'access-control-expose-headers': '*'}
     return StreamingResponse(file, headers=headers, media_type="image/jpeg")
 
 
