@@ -28,7 +28,7 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv('KEY')
     authjwt_denylist_enabled: bool = True
     authjwt_denylist_token_checks: set = {"access", "refresh"}
-    authjwt_access_token_expires: int = timedelta(minutes=60)
+    authjwt_access_token_expires: int = timedelta(minutes=15)
     authjwt_refresh_token_expires: int = timedelta(days=30)
 
 

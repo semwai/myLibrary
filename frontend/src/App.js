@@ -5,6 +5,7 @@ import Books from './components/pages/books';
 import Index from './components/pages/Index';
 import Login from './components/login';
 import useToken from './components/useToken';
+import { refreshToken } from './components/refreshToken';
 
 
 function App() {
@@ -13,7 +14,9 @@ function App() {
   if (!token) {
     return <Login setToken={setToken} />
   }
-
+  
+  // update jwt token every 10 min 
+  setInterval(refreshToken, 1000 * 60 * 10)
   return (
       <BrowserRouter>
         <div>
