@@ -1,5 +1,5 @@
 
-export function refreshToken() {
+export function refreshToken(interval) {
   const token = localStorage.getItem('refresh_token')
 
   fetch(`${process.env.REACT_APP_BACK_ADDR}/refresh`, {
@@ -8,7 +8,9 @@ export function refreshToken() {
     headers: { 'Authorization': `Bearer ${token}` }
   }).then(res => res.json())
     .then(function(data) {
-      console.log(data)
+      //console.log(data)
       localStorage.setItem('access_token', data.access_token)
     })
+
+  setTimeout(() => {refreshToken(interval)}, interval)
 }

@@ -16,7 +16,8 @@ function App() {
   }
   
   // update jwt token every 10 min 
-  setInterval(refreshToken, 1000 * 60 * 10)
+  refreshToken(1000 * 60 * 10)
+
   return (
       <BrowserRouter>
         <div>
