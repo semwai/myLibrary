@@ -2,7 +2,7 @@ import io
 from typing import Optional
 
 import fitz
-from fastapi import APIRouter, status
+from fastapi import APIRouter, status, Response
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
@@ -18,7 +18,10 @@ book_router = APIRouter()
 @book_router.get("/page/{book_id}", tags=['Book'],
                  description="get page as jpg file and save current `page: int` to database.\
                              if `page` is `None` - get last opened or first page", response_class=StreamingResponse)
-def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
+def get_page(book_id: int,
+             page: Optional[int] = None,
+             authorize: AuthJWT = Depends(),
+             session: Session = Depends(get_db)):
     authorize.jwt_required()
     current_user = authorize.get_jwt_subject()
     db_user = session.query(UserModel).filter_by(name=current_user).one()
@@ -42,7 +45,8 @@ def get_page(book_id: int, page: Optional[int] = None, authorize: AuthJWT = Depe
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
-    return StreamingResponse(file, media_type="image/jpeg")
+    headers = {'page': str(progress.page)}
+    return StreamingResponse(file, headers=headers, media_type="image/jpeg")
 
 
 async def upload_book(name: str, file, author: Optional[str] = None, session: Session = Depends(get_db)):
