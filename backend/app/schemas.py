@@ -23,3 +23,9 @@ class HTTPError(BaseModel):
         schema_extra = {
             "example": {"detail": "HTTPException raised."},
         }
+
+
+class BookInfo(BaseModel):
+    name: str
+    author: str | None
+    pages: int

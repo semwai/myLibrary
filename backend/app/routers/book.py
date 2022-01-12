@@ -10,6 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import load_only, Session
 
 from ..models import Page, Book, User as UserModel, UserProgress
+from ..schemas import BookInfo
 from ..session import get_db
 
 book_router = APIRouter()
@@ -34,14 +35,14 @@ def get_page(book_id: int,
             progress = UserProgress(user_id=db_user.id, book_id=book_id, page=0)
     elif page is not None:
         progress.page = page
+    res = session.query(Page).filter_by(book_id=book_id, number=progress.page).first()
+    if res is None:
+        raise HTTPException(status_code=404, detail="Page not found")
     try:
         session.add(progress)
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code=404, detail="Book not found")
-    res = session.query(Page).filter_by(book_id=book_id, number=progress.page).first()
-    if res is None:
-        raise HTTPException(status_code=404, detail="Page not found")
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)
@@ -74,7 +75,7 @@ async def post_book(background_tasks: BackgroundTasks,
 
 @book_router.get("/books", tags=['Book'], description="get id of books")
 async def post_book(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
-    authorize.jwt_optional()
+    authorize.jwt_required()
     fields = ['id', 'name', 'author']
     books = session.query(Book).options(load_only(*fields)).all()
     return {'books': [book.__dict__ for book in books]}
@@ -84,8 +85,18 @@ async def post_book(authorize: AuthJWT = Depends(), session: Session = Depends(g
 async def get_book(id: int, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     res = session.query(Book).filter_by(id=id).first()
     if res is None:
-        return HTTPException(status_code=404, detail="Page not found")
+        return HTTPException(status_code=404, detail="Book not found")
     file = io.BytesIO()
     file.write(res.raw)
     file.seek(0)
     return StreamingResponse(file, media_type="application/pdf")
+
+
+@book_router.get("/book_info/{id}", tags=['Book'], response_model=BookInfo)
+async def get_book(id: int, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
+    authorize.jwt_required()
+    book = session.query(Book).filter_by(id=id).first()
+    if book is None:
+        return HTTPException(status_code=404, detail="Book not found")
+    page_count = session.query(Page).filter_by(book_id=book.id).count()
+    return BookInfo(name=book.name, author=book.author, pages=page_count)
