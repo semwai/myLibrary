@@ -34,16 +34,30 @@ function getPage(token, setPageUrl, setPage, book, page) {
     })
 }
 
+function getBookInfo(token, setbookMeta, book) {
+  let path = `${process.env.REACT_APP_BACK_ADDR}/book_info/${book}`
+  fetch(path, {
+    mode: 'cors',
+    headers: { 'Authorization': `Bearer ${token}`, 'page': '' }
+  })
+    .then(res => res.json())
+    .then(function (json) {
+      setbookMeta(json)
+      document.title = json.name + (json.author == undefined ? '': ' - ') + (json?.author || '')
+    })
+}
+
 export default function Book() {
 
   const { token, setToken } = useToken()
   const [pageUrl, setPageUrl] = useState('#')
   const [page, setPage] = useState(undefined)
+  const [bookMeta, setbookMeta] = useState(undefined)
   const book_id = useParams().id
 
   useEffect(() => {
     getPage(token, setPageUrl, setPage, book_id)
-
+    getBookInfo(token, setbookMeta, book_id)
   }, [])
 
   return (
@@ -52,13 +66,19 @@ export default function Book() {
       <p><img width='100%' src={pageUrl} /></p>
       <Container fluid>
         <Row>
-          <Col className='button-center element-center' onClick={() => { getPage(token, setPageUrl, setPage, book_id, page - 1) }}>
-            Back
-          </Col>
-          <Col className='element-center'>{page}</Col>
-          <Col className='button-center element-center' onClick={() => { getPage(token, setPageUrl, setPage, book_id, page + 1) }}>
-            Next
-          </Col>
+          {page > 0 ?
+            <Col className='button-center element-center' onClick={() => { getPage(token, setPageUrl, setPage, book_id, page - 1) }}>
+              Back
+            </Col>
+            : <Col></Col>
+          }
+          <Col className='element-center'>{ page } of { bookMeta?.pages }</Col>
+          {page + 1 < bookMeta?.pages ?
+            <Col className='button-center element-center' onClick={() => { getPage(token, setPageUrl, setPage, book_id, page + 1) }}>
+              Next
+            </Col>
+            : <Col></Col>
+          }
         </Row>
       </Container>
     </div>
