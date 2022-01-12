@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ListGroup } from 'react-bootstrap';
 import useToken from '../useToken';
 
 function getBooks(token, setter) {
@@ -13,20 +15,23 @@ export default function Books() {
   const { token, setToken } = useToken();
   const [books, setBooks] = useState([]);
 
-  
-  useEffect(() => { 
-    getBooks(token, setBooks)
-    console.log(books)
-  }, []);
-  
 
-  
+  useEffect(() => {
+    getBooks(token, setBooks)
+  }, []);
+
+
   return (
     <div>
       <h2>Books </h2>
-      <ul>
-        {books.map(book => <a href={ '/book/' + book.id }><li key={book.id}>{book.name} {book.author?' - ' + book.author:''}</li></a>)}
-      </ul>
+      <ListGroup>
+        {books.map(book =>
+          <Link to={'/book/' + book.id}>
+            <ListGroup.Item key={book.id}>
+              {book.name} {book.author ? ' - ' + book.author : ''}
+            </ListGroup.Item>
+          </Link>)}
+      </ListGroup>
     </div>
   );
 }
