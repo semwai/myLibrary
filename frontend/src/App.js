@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes, Link } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import './App.css';
 import Book from './components/pages/book';
 import Books from './components/pages/books';
@@ -6,6 +6,7 @@ import Index from './components/pages/Index';
 import Login from './components/login';
 import useToken from './components/useToken';
 import { refreshToken } from './components/refreshToken';
+import Nav from './components/nav';
 
 
 function App() {
@@ -21,19 +22,7 @@ function App() {
   return (
       <BrowserRouter>
         <div>
-          <nav>
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <Link to="/book">book</Link>
-              </li>
-              <li>
-                <Link to="/books">books</Link>
-              </li>
-            </ul>
-          </nav>
+          <Nav/>
           <Routes>
             <Route path="/" element={<Index />}>
             </Route>
