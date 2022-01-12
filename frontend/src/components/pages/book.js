@@ -43,7 +43,7 @@ function getBookInfo(token, setbookMeta, book) {
     .then(res => res.json())
     .then(function (json) {
       setbookMeta(json)
-      document.title = json.name + (json.author == undefined ? '': ' - ') + (json?.author || '')
+      document.title = json.name + (json.author == undefined ? '' : ' - ') + (json?.author || '')
     })
 }
 
@@ -72,7 +72,14 @@ export default function Book() {
             </Col>
             : <Col></Col>
           }
-          <Col className='element-center'>{ page } of { bookMeta?.pages }</Col>
+          <Col className='element-center' onClick=
+            {e => {
+              const new_page = prompt('page')
+              console.log(new_page)
+              getPage(token, setPageUrl, setPage, book_id, new_page)
+            }} >
+            {page} of {bookMeta?.pages}
+          </Col>
           {page + 1 < bookMeta?.pages ?
             <Col className='button-center element-center' onClick={() => { getPage(token, setPageUrl, setPage, book_id, page + 1) }}>
               Next
