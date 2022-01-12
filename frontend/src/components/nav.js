@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
-import { Navbar, Nav as BootNav, Container, NavDropdown } from "react-bootstrap"
+import { Navbar, Nav as BootNav, Container } from "react-bootstrap"
+import './nav.css'
 
 export default function Nav() {
   // https://react-bootstrap.github.io/components/navbar/
@@ -9,10 +10,10 @@ export default function Nav() {
         <Navbar.Brand href="#home">MyLibrary</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
-          <BootNav className="me-auto">
-            <BootNav.Link href="#"><Link to="/">Home</Link></BootNav.Link>
-            <BootNav.Link href="#"><Link to="/book">Book</Link></BootNav.Link>
-            <BootNav.Link href="#"><Link to="/books">Books</Link></BootNav.Link>
+          <BootNav >
+            <Link className="navs" to="/">Home</Link>
+            <Link className="navs" to="/book">Book</Link> 
+            <Link className="navs" to="/books">Books</Link> 
           </BootNav>
         </Navbar.Collapse>
       </Container>

@@ -75,7 +75,6 @@ export default function Book() {
           <Col className='element-center' onClick=
             {e => {
               const new_page = prompt('page')
-              console.log(new_page)
               getPage(token, setPageUrl, setPage, book_id, new_page)
             }} >
             {page} of {bookMeta?.pages}
