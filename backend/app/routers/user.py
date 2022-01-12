@@ -46,7 +46,6 @@ def get_config():
 def check_if_token_in_denylist(decrypted_token):
     jti = decrypted_token['jti']
     entry = redis_conn.get(jti)
-    print(jti, entry, 123)
     return entry and entry == 'true'
 
 
