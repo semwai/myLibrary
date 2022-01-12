@@ -7,7 +7,7 @@ import './book.css'
 function getPage(token, setPageUrl, setPage, book, page) {
 
   let path = `${process.env.REACT_APP_BACK_ADDR}/page/${book}`
-  if (page != null) {
+  if (page !== undefined) {
     console.log(page)
     if (page < 0)
       return
@@ -18,7 +18,7 @@ function getPage(token, setPageUrl, setPage, book, page) {
     headers: { 'Authorization': `Bearer ${token}`, 'page': '' }
   })
     .then(function (response) {
-      if (response.status == 404)
+      if (response.status === 404)
         throw new Error(response.statusText);
       const page = parseInt(response.headers.get('page'))
       setPage(page)
@@ -43,13 +43,13 @@ function getBookInfo(token, setbookMeta, book) {
     .then(res => res.json())
     .then(function (json) {
       setbookMeta(json)
-      document.title = json.name + (json.author == undefined ? '' : ' - ') + (json?.author || '')
+      document.title = json.name + (json.author === null ? '' : ' - ') + (json?.author || '')
     })
 }
 
 export default function Book() {
 
-  const { token, setToken } = useToken()
+  const { token } = useToken()
   const [pageUrl, setPageUrl] = useState('#')
   const [page, setPage] = useState(undefined)
   const [bookMeta, setbookMeta] = useState(undefined)
@@ -63,7 +63,7 @@ export default function Book() {
   return (
     <div>
 
-      <p><img width='100%' src={pageUrl} /></p>
+      <p><img width='100%' src={pageUrl} alt={ 'page ' + page }/></p>
       <Container fluid>
         <Row>
           {page > 0 ?
