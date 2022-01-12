@@ -2,7 +2,7 @@ import io
 from typing import Optional
 
 import fitz
-from fastapi import APIRouter, status, Response
+from fastapi import APIRouter, status
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT

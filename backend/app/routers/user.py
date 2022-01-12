@@ -1,7 +1,6 @@
 import os
 from datetime import timedelta
 
-from dotenv import load_dotenv
 from fastapi import APIRouter
 from fastapi import HTTPException, Depends
 from fastapi_jwt_auth import AuthJWT
@@ -16,8 +15,6 @@ from ..schemas import User, UserRegister, HTTPError, UserMe
 from ..session import get_db
 
 user_router = APIRouter()
-
-load_dotenv()
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

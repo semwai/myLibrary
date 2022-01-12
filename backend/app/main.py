@@ -1,3 +1,5 @@
+import os
+
 from fastapi.routing import APIRoute
 
 import re
@@ -7,22 +9,21 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
 from fastapi_jwt_auth.exceptions import AuthJWTException
-
+from dotenv import load_dotenv
 from .routers.book import book_router
 from .routers.user import user_router
 
+load_dotenv()
 app = FastAPI()
 app.include_router(user_router)
 app.include_router(book_router)
 
 origins = [
-    "http://192.168.0.3:3000",
-    "http://192.168.0.3:8000",
     "http://localhost:3000",
     "http://localhost:8000",
-    "http://project.test",
-    "http://api.project.test"
 ]
+
+origins.extend(os.getenv('ORIGINS').split(' '))
 
 app.add_middleware(
     CORSMiddleware,
