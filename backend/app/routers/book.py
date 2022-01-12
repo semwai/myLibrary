@@ -50,14 +50,14 @@ def get_page(book_id: int,
     return StreamingResponse(file, headers=headers, media_type="image/jpeg")
 
 
-async def upload_book(name: str, file, author: Optional[str] = None, session: Session = Depends(get_db)):
+async def upload_book(name: str, file, session: Session, author: Optional[str] = None):
     data = await file.read()
     db_book = Book(name=name, author=author, raw=data)
     session.add(db_book)
     session.flush()
     book = fitz.open(stream=data, filetype="pdf")
     for i, page in enumerate(book):
-        raw_data = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)).pil_tobytes('jpeg', quality=80)
+        raw_data = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5)).pil_tobytes('jpeg', quality=70)
         elem = Page(number=i, book_id=db_book.id, data=raw_data)
         session.add(elem)
     session.commit()
@@ -67,9 +67,10 @@ async def upload_book(name: str, file, author: Optional[str] = None, session: Se
 async def post_book(background_tasks: BackgroundTasks,
                     name: str, author: Optional[str] = None,
                     file: UploadFile = File(...),
-                    authorize: AuthJWT = Depends()):
+                    authorize: AuthJWT = Depends(),
+                    session: Session = Depends(get_db)):
     authorize.jwt_required()
-    background_tasks.add_task(upload_book, name=name, author=author, file=file)
+    background_tasks.add_task(upload_book, name=name, author=author, file=file, session=session)
     return {'name': name, 'author': author}
 
 

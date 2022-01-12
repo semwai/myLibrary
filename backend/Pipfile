@@ -18,6 +18,8 @@ fastapi-jwt-auth = "*"
 alembic = "*"
 passlib = {extras = ["bcrypt"], version = "*"}
 redis = "*"
+configparser = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 pytest = "*"
