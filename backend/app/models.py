@@ -35,8 +35,8 @@ class Book(Base):
 class UserProgress(Base):
     __tablename__ = 'UsersProgress'
 
-    user_id = Column(ForeignKey('Users.id'), primary_key=True)
-    book_id = Column(ForeignKey('Books.id'), primary_key=True)
+    user_id = Column(ForeignKey('Users.id', ondelete='CASCADE'), primary_key=True)
+    book_id = Column(ForeignKey('Books.id', ondelete='CASCADE'), primary_key=True)
     page = Column(Integer(), nullable=False)
 
     def __repr__(self):

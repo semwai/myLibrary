@@ -2,8 +2,7 @@ import io
 from typing import Optional
 
 import fitz
-from fastapi import APIRouter, status
-from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends
+from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends, APIRouter, status
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
 from sqlalchemy.exc import IntegrityError
@@ -57,7 +56,7 @@ async def upload_book(name: str, file, session: Session, author: Optional[str] =
     session.flush()
     book = fitz.open(stream=data, filetype="pdf")
     for i, page in enumerate(book):
-        raw_data = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5)).pil_tobytes('jpeg', quality=70)
+        raw_data = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)).pil_tobytes('jpeg', quality=70)
         elem = Page(number=i, book_id=db_book.id, data=raw_data)
         session.add(elem)
     session.commit()
