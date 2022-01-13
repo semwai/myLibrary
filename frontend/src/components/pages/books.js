@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button, ListGroup, Modal, Form } from 'react-bootstrap';
 import useToken from '../useToken';
 import './books.css'
+import Loader from '../loader';
 
 function getBooks(token, setBooks, setWait) {
   setWait(true)
@@ -54,7 +55,7 @@ export default function Books() {
   }
 
   if (wait)
-    return "wait..."
+    return <Loader/>
 
   return (
     <div>
