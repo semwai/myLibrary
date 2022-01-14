@@ -7,7 +7,7 @@ import ThemeContext from '../useDark';
 import './book.css'
 
 function getPage(token, setPageUrl, setPage, setWait, book, page) {
-  setWait(true)
+  
   let path = `${process.env.REACT_APP_BACK_ADDR}/page/${book}`
   if (page !== undefined) {
     console.log(page)
@@ -15,6 +15,7 @@ function getPage(token, setPageUrl, setPage, setWait, book, page) {
       return
     path += `?page=${page}`
   }
+  setWait(true)
   fetch(path, {
     mode: 'cors',
     headers: { 'Authorization': `Bearer ${token}`, 'page': '' }
@@ -35,6 +36,7 @@ function getPage(token, setPageUrl, setPage, setWait, book, page) {
         behavior: "instant"
       });
     })
+    .catch(err => setWait(false))
 }
 
 function getBookInfo(token, setbookMeta, book) {
@@ -83,10 +85,10 @@ export default function Book() {
           }
           <Col className='element-center' onClick=
             {e => {
-              const new_page = prompt('page')
+              const new_page = prompt('page') - 1
               loadPage(new_page)
             }} >
-            {page} of {bookMeta?.pages}
+            {page + 1} of {bookMeta?.pages + 1}
           </Col>
           {page + 1 < bookMeta?.pages ?
             <Col className='button-center element-center' onClick={() => { loadPage(page + 1) }}>
