@@ -6,26 +6,31 @@ import Books from './components/pages/books';
 import Index from './components/pages/Index';
 import Login from './components/login';
 import useToken from './components/useToken';
-import { refreshToken } from './components/refreshToken';
 import Nav from './components/nav';
 import ThemeContext from './components/useDark';
 
 
 function App() {
   const { token, setToken } = useToken();
-  const [ dark, setDarkTheme ] = useState(false)
+  const [dark, setDarkTheme] = useState(false)
   if (!token) {
     return <Login setToken={setToken} />
   }
-  
-  // update jwt token every 10 min 
-  refreshToken(1000 * 60 * 10)
+
+  const themeInit = localStorage.getItem('dark') === 'true'
 
   return (
-    <ThemeContext.Provider value={{dark: dark, setDark: (value) => {setDarkTheme(value)}}}>
+    <ThemeContext.Provider value={
+      {
+        dark: themeInit,
+        setDark: (value) => { 
+          localStorage.setItem('dark', value)
+          setDarkTheme(value) 
+        }
+      }}>
       <BrowserRouter>
         <div>
-          <Nav/>
+          <Nav />
           <Routes>
             <Route path="/" element={<Index />}>
             </Route>
@@ -36,7 +41,7 @@ function App() {
           </Routes>
         </div>
       </BrowserRouter>
-      </ThemeContext.Provider>
+    </ThemeContext.Provider>
   );
 }
 

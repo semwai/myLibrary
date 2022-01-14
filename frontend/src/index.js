@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { refreshToken } from './components/refreshToken';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 ReactDOM.render(
@@ -11,6 +12,10 @@ ReactDOM.render(
   </React.StrictMode>,
   document.getElementById('root')
 );
+
+// update jwt token every 10 min 
+refreshToken(1000 * 60 * 10)
+
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

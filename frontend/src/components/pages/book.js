@@ -71,14 +71,16 @@ export default function Book() {
   if (wait) 
     return <Loader/>
 
+  const buttonThemeClass = theme.dark ? 'button-center-dark':'button-center-light'
+
   return (
     <div>
 
-      <p><img width='100%' src={pageUrl} alt={'page ' + page} className={ theme.dark ? 'invert':'' }/></p>
-      <Container fluid>
+      <img width='100%' src={pageUrl} alt={'page ' + page} className={ theme.dark ? 'invert':'' }/>
+      <Container fluid className={ theme.dark ? 'dark-bottom':'' }>
         <Row>
           {page > 0 ?
-            <Col className='button-center element-center' onClick={() => { loadPage(page - 1) }}>
+            <Col className={'element-center ' + buttonThemeClass} onClick={() => { loadPage(page - 1) }}>
               Back
             </Col>
             : <Col></Col>
@@ -91,7 +93,7 @@ export default function Book() {
             {page + 1} of {bookMeta?.pages + 1}
           </Col>
           {page + 1 < bookMeta?.pages ?
-            <Col className='button-center element-center' onClick={() => { loadPage(page + 1) }}>
+            <Col className={'element-center ' + buttonThemeClass} onClick={() => { loadPage(page + 1) }}>
               Next
             </Col>
             : <Col></Col>

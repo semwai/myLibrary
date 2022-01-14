@@ -9,7 +9,7 @@ export default function Nav() {
   const {dark, setDark } = useContext(ThemeContext);
   // https://react-bootstrap.github.io/components/navbar/
   return (
-    <Navbar bg="light" expand="lg">
+    <Navbar bg="light" expand="lg" bg={ dark? "dark": "light" } variant={ dark? "dark": "light" }>
       <Container>
         <Navbar.Brand href="#">MyLibrary</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
