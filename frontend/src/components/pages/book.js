@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 import { Container, Row, Col } from 'react-bootstrap';
 import useToken from '../useToken';
 import Loader from '../loader';
+import ThemeContext from '../useDark';
 import './book.css'
 
 function getPage(token, setPageUrl, setPage, setWait, book, page) {
@@ -57,7 +58,7 @@ export default function Book() {
   const [bookMeta, setbookMeta] = useState(undefined)
   const [wait, setWait] = useState(true)
   const book_id = useParams().id
-
+  const theme = useContext(ThemeContext);
   useEffect(() => {
     getPage(token, setPageUrl, setPage, setWait, book_id)
     getBookInfo(token, setbookMeta, book_id)
@@ -65,23 +66,13 @@ export default function Book() {
 
   const loadPage = (p) => getPage(token, setPageUrl, setPage, setWait, book_id, p)
 
-  /*document.addEventListener('keydown', e => {
-    if (wait) 
-      return
-    
-    if (e.key == 'ArrowLeft')
-      loadPage(page - 1)
-    if (e.key == 'ArrowRight')
-      loadPage(page + 1)
-  });*/
-
   if (wait) 
     return <Loader/>
 
   return (
     <div>
 
-      <p><img width='100%' src={pageUrl} alt={'page ' + page} /></p>
+      <p><img width='100%' src={pageUrl} alt={'page ' + page} className={ theme.dark ? 'invert':'' }/></p>
       <Container fluid>
         <Row>
           {page > 0 ?

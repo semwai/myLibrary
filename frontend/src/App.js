@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { useState } from 'react';
 import './App.css';
 import Book from './components/pages/book';
 import Books from './components/pages/books';
@@ -7,11 +8,12 @@ import Login from './components/login';
 import useToken from './components/useToken';
 import { refreshToken } from './components/refreshToken';
 import Nav from './components/nav';
+import ThemeContext from './components/useDark';
 
 
 function App() {
   const { token, setToken } = useToken();
-
+  const [ dark, setDarkTheme ] = useState(false)
   if (!token) {
     return <Login setToken={setToken} />
   }
@@ -20,6 +22,7 @@ function App() {
   refreshToken(1000 * 60 * 10)
 
   return (
+    <ThemeContext.Provider value={{dark: dark, setDark: (value) => {setDarkTheme(value)}}}>
       <BrowserRouter>
         <div>
           <Nav/>
@@ -33,6 +36,7 @@ function App() {
           </Routes>
         </div>
       </BrowserRouter>
+      </ThemeContext.Provider>
   );
 }
 
