@@ -63,7 +63,7 @@ export default function Books() {
       <ListGroup>
         {books.map(book =>
           <Link key={book.id} to={'/book/' + book.id}>
-            <ListGroup.Item>
+            <ListGroup.Item variant="dark">
               {book.name} {book.author ? ' - ' + book.author : ''}
             </ListGroup.Item>
           </Link>)}

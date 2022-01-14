@@ -6,19 +6,23 @@ import './nav.css'
 
 
 export default function Nav() {
-  const {dark, setDark } = useContext(ThemeContext);
+  const { dark, setDark } = useContext(ThemeContext);
   // https://react-bootstrap.github.io/components/navbar/
   return (
-    <Navbar bg="light" expand="lg" bg={ dark? "dark": "light" } variant={ dark? "dark": "light" }>
+    <Navbar bg="light" expand="lg" bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"}>
       <Container>
         <Navbar.Brand href="#">MyLibrary</Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <BootNav >
-            <Link className="navs" to="/">Home</Link>
-            <Link className="navs" to="/books">Books</Link> 
-            <Link className="navs" to="#" onClick={ () => { setDark(!dark) }}>{dark?'dark':'light'} mode</Link> 
-            
+            <Navbar.Text><Link className="navs" to="/">Home</Link></Navbar.Text>
+            <Navbar.Text><Link className="navs" to="/books">Books</Link></Navbar.Text>
+            <Navbar.Text
+              style={{font_size: 2 + 'em'}}
+              className="navs justify-content-end"
+              onClick={() => { setDark(!dark) }}>
+              Change theme {dark ? '🌚' : '🌝'}
+            </Navbar.Text>
           </BootNav>
         </Navbar.Collapse>
       </Container>

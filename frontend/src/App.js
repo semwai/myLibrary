@@ -18,6 +18,7 @@ function App() {
   }
 
   const themeInit = localStorage.getItem('dark') === 'true'
+  document.body.style.backgroundColor = themeInit  ? 'black' : ''
 
   return (
     <ThemeContext.Provider value={
@@ -25,7 +26,8 @@ function App() {
         dark: themeInit,
         setDark: (value) => { 
           localStorage.setItem('dark', value)
-          setDarkTheme(value) 
+          setDarkTheme(value)
+          document.body.style.backgroundColor = value  ? 'black' : ''
         }
       }}>
       <BrowserRouter>
