@@ -6,11 +6,16 @@ export function refreshToken(interval) {
     mode: 'cors',
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` }
-  }).then(res => res.json())
+  }).then(res => {
+    if (!res.ok)
+      throw new Error(res.statusText)
+    return res.json()
+  })
     .then(function(data) {
       //console.log(data)
       localStorage.setItem('access_token', data.access_token)
     })
+    .catch(err => console.log(err))
 
   setTimeout(() => {refreshToken(interval)}, interval)
 }

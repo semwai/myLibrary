@@ -1,6 +1,6 @@
 .button-center-light {
   background-color: rgb(248, 249, 250);
-  border: 1vh solid black;
+  border: 1vh solid rgb(248, 249, 250);;
 }
 
 .button-center-dark {
