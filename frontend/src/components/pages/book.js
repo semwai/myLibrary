@@ -5,12 +5,12 @@ import useToken from '../useToken';
 import Loader from '../loader';
 import ThemeContext from '../useDark';
 import './book.css'
+import { refreshToken } from '../refreshToken';
 
 function getPage(token, setPageUrl, setPage, setWait, book, page) {
 
   let path = `${process.env.REACT_APP_BACK_ADDR}/page/${book}`
   if (page !== undefined) {
-    console.log(page)
     if (page < 0)
       return
     path += `?page=${page}`
@@ -21,7 +21,9 @@ function getPage(token, setPageUrl, setPage, setWait, book, page) {
     headers: { 'Authorization': `Bearer ${token}` }
   })
     .then(function (response) {
-      if (response.status === 404)
+      if (response.status == 422)
+        refreshToken()
+      if (!response.ok)
         throw new Error(response.statusText);
       const page = parseInt(response.headers.get('page'))
       setPage(page)
@@ -99,7 +101,6 @@ export default function Book() {
 
   return (
     <div>
-      { controlPane }
       <img width='100%' src={pageUrl} alt={'page ' + page} className={theme.dark ? 'invert' : ''} />
       { controlPane }
     </div>

@@ -16,6 +16,6 @@ export function refreshToken(interval) {
       localStorage.setItem('access_token', data.access_token)
     })
     .catch(err => console.log(err))
-
-  setTimeout(() => {refreshToken(interval)}, interval)
+  if (interval)
+    setTimeout(() => {refreshToken(interval)}, interval)
 }

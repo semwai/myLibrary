@@ -23,24 +23,23 @@ export default function Nav() {
 
   // https://react-bootstrap.github.io/components/navbar/
   return (
-    <Navbar expand="lg" bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"}>
+    <Navbar  bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"}>
       <Container>
 
         <Navbar.Collapse id="basic-navbar-nav" className="navs justify-content-start">
           <BootNav>
             <Navbar.Text><Link className="navs" to="/">Home</Link></Navbar.Text>
             <Navbar.Text><Link className="navs" to="/books">Books</Link></Navbar.Text>
-          </BootNav>
-        </Navbar.Collapse>
-
-        <Navbar.Collapse id="basic-navbar-nav" className="navs justify-content-end">
-          <BootNav>
             <Navbar.Text
               style={{ font_size: 2 + 'em' }}
               onClick={() => { setDark(!dark) }}>
               Change theme {dark ? '🌚' : '🌝'}
             </Navbar.Text>
+          </BootNav>
+        </Navbar.Collapse>
 
+        <Navbar.Collapse id="basic-navbar-nav" className="navs justify-content-end">
+          <BootNav>
             <Navbar.Text><Link className="navs" to="#" onClick={exit}> Exit</Link></Navbar.Text>
           </BootNav>
         </Navbar.Collapse>
