@@ -51,12 +51,12 @@ def get_page(book_id: int,
 
 async def upload_book(name: str, file, session: Session, author: Optional[str] = None):
     data = await file.read()
-    db_book = Book(name=name, author=author)  # , raw=data)
+    db_book = Book(name=name, author=author, raw=data)
     session.add(db_book)
     session.commit()
     book = fitz.open(stream=data, filetype="pdf")
     for i, page in enumerate(book):
-        raw_data = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5)).pil_tobytes('jpeg', quality=70)
+        raw_data = page.get_pixmap(matrix=fitz.Matrix(2, 2)).pil_tobytes('jpeg', quality=70)
         elem = Page(number=i, book_id=db_book.id, data=raw_data)
         session.add(elem)
         session.commit()
