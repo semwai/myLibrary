@@ -25,7 +25,7 @@ class Settings(BaseModel):
     authjwt_secret_key: str = os.getenv('KEY')
     authjwt_denylist_enabled: bool = True
     authjwt_denylist_token_checks: set = {"access", "refresh"}
-    authjwt_access_token_expires: int = timedelta(minutes=15)
+    authjwt_access_token_expires: int = timedelta(days=15)
     authjwt_refresh_token_expires: int = timedelta(days=30)
 
 
@@ -63,8 +63,8 @@ def login(user_in: User, authorize: AuthJWT = Depends(), session: Session = Depe
         raise HTTPException(status_code=401, detail="Bad username or password")
 
     # subject identifier for who this token is for example id or username from database
-    access_token = authorize.create_access_token(subject=user_in.username)
-    refresh_token = authorize.create_refresh_token(subject=user_in.username)
+    access_token = authorize.create_access_token(subject=user_in.username, headers={'id': db_user.id})
+    refresh_token = authorize.create_refresh_token(subject=user_in.username, headers={'id': db_user.id})
     return {'access_token': access_token, 'refresh_token': refresh_token}
 
 
@@ -126,4 +126,4 @@ def register(user_in: UserRegister, session: Session = Depends(get_db)):
 def user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     current_user = authorize.get_jwt_subject()
-    return {"user": current_user}
+    return {'user': current_user, 'id': authorize.get_unverified_jwt_headers()['id']}

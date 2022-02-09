@@ -5,8 +5,9 @@ import fitz
 from fastapi import File, UploadFile, BackgroundTasks, HTTPException, Depends, APIRouter, status
 from fastapi.responses import StreamingResponse
 from fastapi_jwt_auth import AuthJWT
+from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import load_only, Session
+from sqlalchemy.orm import load_only, Session, noload
 
 from ..models import Page, Book, User as UserModel, UserProgress
 from ..schemas import BookInfo
@@ -76,9 +77,27 @@ async def post_book(background_tasks: BackgroundTasks,
 @book_router.get("/books", tags=['Book'], description="get id of books")
 async def post_book(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     authorize.jwt_required()
-    fields = ['id', 'name', 'author']
-    books = session.query(Book).options(load_only(*fields)).all()
-    return {'books': [book.__dict__ for book in books]}
+    user_id = authorize.get_unverified_jwt_headers()['id']
+
+    query = text('select "Books".id, "Books".name, "Books".author, max("Pages".number), "UsersProgress".page as "current" \
+from "Books" \
+inner join "Pages" on "Books".id = "Pages".book_id \
+inner join "UsersProgress" on "Books".id = "UsersProgress".book_id \
+where "UsersProgress".user_id = :id \
+group by "Books".id, "UsersProgress".page \
+union \
+select "Books".id, "Books".name, "Books".author, max("Pages".number), Null as "current" \
+from "Books" \
+inner join "Pages" on "Books".id = "Pages".book_id \
+inner join "UsersProgress" on "Books".id = "UsersProgress".book_id \
+where "Books".id not in (select book_id from "UsersProgress" where user_id = :id) \
+group by "Books".id')
+    try:
+        res = session.execute(query, {'id': user_id}).all()
+    except:
+        session.rollback()
+
+    return {'books': [book for book in res]}
 
 
 @book_router.get("/book/{id}", tags=['Book'])
