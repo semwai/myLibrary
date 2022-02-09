@@ -45,7 +45,7 @@ export default function Books() {
     data.append('file', file)
     fetch(path, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`},
+      headers: { 'Authorization': `Bearer ${token}` },
       body: data
     }).then(res => res.json())
       .then(json => {
@@ -55,7 +55,7 @@ export default function Books() {
   }
 
   if (wait)
-    return <Loader/>
+    return <Loader />
 
   return (
     <div>
@@ -64,7 +64,7 @@ export default function Books() {
         {books.map(book =>
           <Link key={book.id} to={'/book/' + book.id}>
             <ListGroup.Item variant="dark">
-              {book.name} {book.author ? ' - ' + book.author : ''}
+              {book.name} {book.author ? ' - ' + book.author : ''} {book.current}{book.current && '/' + book.max}
             </ListGroup.Item>
           </Link>)}
       </ListGroup>
@@ -86,11 +86,11 @@ export default function Books() {
 
             <Form.Group className="mb-3" controlId="formAuthor">
               <Form.Label>Book author</Form.Label>
-              <Form.Control type="text" placeholder="Enter book author" onChange={e => setAuthor(e.target.value)}/>
+              <Form.Control type="text" placeholder="Enter book author" onChange={e => setAuthor(e.target.value)} />
             </Form.Group>
             <Form.Group controlId="formFile" className="mb-3">
               <Form.Label>PDF file</Form.Label>
-              <Form.Control required type="file" onChange={e => setFile(e.target.files[0])}/>
+              <Form.Control required type="file" onChange={e => setFile(e.target.files[0])} />
             </Form.Group>
             <Button variant="primary" type="submit">
               Submit
