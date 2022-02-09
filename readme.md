@@ -12,7 +12,7 @@
 `docker run --name pgadmin -p 80:80 -e PGADMIN_DEFAULT_EMAIL=MAIL -e PGADMIN_DEFAULT_PASSWORD=PASS_FOR_PGADMIN -d dpage/pgadmin4`
 6) create table in pgadmin
 7) create redis: 
-`docker run --name redis -p 6369:6379 -d redis`
+`docker run --name redis -p 6379:6379 -d redis`
 8) run migrations:\
 `alembic revision --autogenerate -m "Message"`\
 `alembic upgrade head`
