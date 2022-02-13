@@ -118,3 +118,11 @@ async def get_book(id: int, authorize: AuthJWT = Depends(), session: Session = D
         return HTTPException(status_code=404, detail="Book not found")
     page_count = session.query(Page).filter_by(book_id=book.id).count()
     return BookInfo(name=book.name, author=book.author, pages=page_count)
+
+
+@book_router.delete('/book/{id}', tags=['Book'])
+def delete_book(id: int, authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
+    authorize.jwt_required()
+    session.query(Book).filter_by(id=id).delete()
+    session.commit()
+    return 'deleted'
