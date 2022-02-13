@@ -19,11 +19,12 @@ export default function Nav() {
     })
     setToken(null)
     localStorage.clear()
+    document.location.reload()
   }
 
   // https://react-bootstrap.github.io/components/navbar/
   return (
-    <Navbar  bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"}>
+    <Navbar bg={dark ? "dark" : "light"} variant={dark ? "dark" : "light"}>
       <Container>
 
         <Navbar.Collapse id="basic-navbar-nav" className="navs justify-content-start">

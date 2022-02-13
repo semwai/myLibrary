@@ -69,7 +69,7 @@ def login(user_in: User, authorize: AuthJWT = Depends(), session: Session = Depe
 
 
 @user_router.post('/refresh', tags=['User'])
-def refresh(authorize: AuthJWT = Depends()):
+def refresh(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     """
     The jwt_refresh_token_required() function insures a valid refresh
     token is present in the request before running any code below that function.
@@ -79,7 +79,10 @@ def refresh(authorize: AuthJWT = Depends()):
     authorize.jwt_refresh_token_required()
 
     current_user = authorize.get_jwt_subject()
-    new_access_token = authorize.create_access_token(subject=current_user)
+
+    db_user = session.query(UserModel).filter_by(name=current_user).one()
+
+    new_access_token = authorize.create_access_token(subject=current_user, headers={'id': db_user.id})
     return {"access_token": new_access_token}
 
 
@@ -87,7 +90,7 @@ def refresh(authorize: AuthJWT = Depends()):
 def login(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     jti = authorize.get_raw_jwt()['jti']
-    redis_conn.setex(jti, settings.access_expires, 'true')
+    redis_conn.setex(jti, settings.authjwt_access_token_expires, 'true')
     return {"detail": "Access token has been revoke"}
 
 
