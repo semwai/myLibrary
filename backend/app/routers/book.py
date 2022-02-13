@@ -89,7 +89,6 @@ union \
 select "Books".id, "Books".name, "Books".author, max("Pages".number), Null as "current" \
 from "Books" \
 inner join "Pages" on "Books".id = "Pages".book_id \
-inner join "UsersProgress" on "Books".id = "UsersProgress".book_id \
 where "Books".id not in (select book_id from "UsersProgress" where user_id = :id) \
 group by "Books".id')
     try:

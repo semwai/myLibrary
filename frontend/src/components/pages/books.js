@@ -23,12 +23,13 @@ function BookInfo(props) {
   let progress = 100 * (book.current / book.max)
   if (progress < 10)
     progress = 10
+  const label = book.current == null ? "Hasn't opened yet" : (book.current + 1) + '/' + (book.max + 1)
   return (<Container fluid><Row>
     <Col sm={12} lg={6}>
       {book.name + author}
     </Col >
     <Col sm={12} lg={6}>
-      <ProgressBar now={progress} label={(book.current + 1) + '/' + (book.max + 1)} />
+      <ProgressBar now={book.current == null ? 100 : progress} label={label} />
     </Col >
   </Row></Container >)
 }
