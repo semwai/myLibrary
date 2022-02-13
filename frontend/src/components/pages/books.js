@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, ListGroup, Modal, Form } from 'react-bootstrap';
+import { Button, ListGroup, Modal, Form, Row, Container, Col, ProgressBar } from 'react-bootstrap';
 import useToken from '../useToken';
 import './books.css'
 import Loader from '../loader';
@@ -15,6 +15,22 @@ function getBooks(token, setBooks, setWait) {
       setBooks(data.books)
       setWait(false)
     })
+}
+
+function BookInfo(props) {
+  const book = props.book
+  const author = book.author ? ' - ' + book.author : ''
+  let progress = 100 * (book.current / book.max)
+  if (progress < 10)
+    progress = 10
+  return (<Container fluid><Row>
+    <Col sm={12} lg={6}>
+      {book.name + author}
+    </Col >
+    <Col sm={12} lg={6}>
+      <ProgressBar now={progress} label={(book.current + 1) + '/' + (book.max + 1)} />
+    </Col >
+  </Row></Container >)
 }
 
 export default function Books() {
@@ -57,14 +73,17 @@ export default function Books() {
   if (wait)
     return <Loader />
 
+
   return (
     <div>
       <h2>Books </h2>
       <ListGroup>
-        {books.map(book =>
+        {books.sort((a, b) => {
+          return a.current / a.max < b.current / b.max
+        }).map(book =>
           <Link key={book.id} to={'/book/' + book.id}>
             <ListGroup.Item variant="dark">
-              {book.name} {book.author ? ' - ' + book.author : ''} {book.current}{book.current && '/' + book.max}
+              <BookInfo book={book} />
             </ListGroup.Item>
           </Link>)}
       </ListGroup>
