@@ -1,3 +1,5 @@
+import datetime
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -29,3 +31,8 @@ class BookInfo(BaseModel):
     name: str
     author: str | None
     pages: int
+
+
+class UsersActivityRes(BaseModel):
+    pages: int
+    date: datetime.date

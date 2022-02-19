@@ -7,11 +7,13 @@ from fastapi_jwt_auth import AuthJWT
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
 from redis import Redis
 from sqlalchemy.orm import Session
+from typing import List
 
-from ..models import User as UserModel
-from ..schemas import User, UserRegister, HTTPError, UserMe
+from ..models import User as UserModel, UsersActivity
+from ..schemas import User, UserRegister, HTTPError, UserMe, UsersActivityRes
 from ..session import get_db
 
 user_router = APIRouter()
@@ -130,3 +132,14 @@ def user(authorize: AuthJWT = Depends()):
     authorize.jwt_required()
     current_user = authorize.get_jwt_subject()
     return {'user': current_user, 'id': authorize.get_unverified_jwt_headers()['id']}
+
+
+@user_router.get('/progress', tags=['User'], response_model=List[UsersActivityRes])
+def get_progress(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
+    authorize.jwt_required()
+    user_id = authorize.get_unverified_jwt_headers()['id']
+    query = session.query(func.count(UsersActivity.page), func.DATE(UsersActivity.date))\
+        .group_by(func.DATE(UsersActivity.date))
+    result = query.all()
+    print(result)
+    return [UsersActivityRes(pages=p[0], date=p[1]) for p in result]
