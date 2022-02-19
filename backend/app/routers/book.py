@@ -1,3 +1,4 @@
+from datetime import datetime
 import io
 from typing import Optional
 
@@ -9,7 +10,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import load_only, Session, noload
 
-from ..models import Page, Book, User as UserModel, UserProgress
+
+from ..models import Page, Book, User as UserModel, UserProgress, UsersActivity
 from ..schemas import BookInfo
 from ..session import get_db
 
@@ -43,6 +45,14 @@ def get_page(book_id: int,
         session.commit()
     except IntegrityError:
         raise HTTPException(status_code=404, detail="Book not found")
+
+    activity = UsersActivity(book_id=book_id, user_id=db_user.id, page=progress.page, date=datetime.now())
+    try:
+        session.add(activity)
+        session.commit()
+    except IntegrityError:
+        session.rollback()
+
     file = io.BytesIO()
     file.write(res.data)
     file.seek(0)

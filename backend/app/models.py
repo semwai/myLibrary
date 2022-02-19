@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, LargeBinary
+from sqlalchemy import Column, Integer, String, ForeignKey, LargeBinary, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -53,3 +53,12 @@ class Page(Base):
 
     def __repr__(self):
         return "<Page('%s','%s', 'len(%d)')>" % (self.number, self.book_id, len(self.data))
+
+
+class UsersActivity(Base):
+    """statistics of the user's read pages to display the progress of reading books"""
+    __tablename__ = 'UsersActivity'
+    user_id = Column(Integer, ForeignKey('Users.id', ondelete='CASCADE'), primary_key=True)
+    book_id = Column(Integer, ForeignKey('Books.id', ondelete='CASCADE'), primary_key=True)
+    page = Column(Integer, primary_key=True)
+    date = Column(DateTime)
