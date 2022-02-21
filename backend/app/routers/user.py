@@ -134,12 +134,12 @@ def user(authorize: AuthJWT = Depends()):
     return {'user': current_user, 'id': authorize.get_unverified_jwt_headers()['id']}
 
 
-@user_router.get('/progress', tags=['User'], response_model=List[UsersActivityRes])
+@user_router.get('/activity', tags=['User'], response_model=List[UsersActivityRes])
 def get_progress(authorize: AuthJWT = Depends(), session: Session = Depends(get_db)):
     authorize.jwt_required()
     user_id = authorize.get_unverified_jwt_headers()['id']
     query = session.query(func.count(UsersActivity.page), func.DATE(UsersActivity.date))\
-        .group_by(func.DATE(UsersActivity.date))
+        .group_by(func.DATE(UsersActivity.date)).order_by(func.DATE(UsersActivity.date))
     result = query.all()
     print(result)
     return [UsersActivityRes(pages=p[0], date=p[1]) for p in result]
