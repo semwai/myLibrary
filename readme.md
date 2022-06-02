@@ -23,3 +23,7 @@
 `cd frontend`\
 `yarn start`
 11) enjoy 👀
+
+# UPD:
+
+## `docker-compose up`
