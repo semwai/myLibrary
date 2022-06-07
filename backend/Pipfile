@@ -20,6 +20,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 redis = "*"
 configparser = "*"
 psycopg2-binary = "*"
+pytest = "*"
 
 [dev-packages]
 pytest = "*"
