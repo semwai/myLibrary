@@ -26,4 +26,5 @@
 
 # UPD:
 
-## `docker-compose up`
+## 1)add `backend/.env` & `frontend/.env`
+## 2)`docker-compose up`
